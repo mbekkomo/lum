@@ -69,6 +69,25 @@ local function iswindows()
 	return type(package) == 'table' and type(package.config) == 'string' and package.config:sub(1,1) == '\\'
 end
 
+local function cmd_handle(fn_name,cmd,option)
+	local cmd_buff = {}
+	cmd_buff[1] = cmd
+
+	local fn_option = toption[fn_name]
+	for o_name,o_val in pairs(option) do
+		if not fn_option[o_name] then
+			error("Invalid option: "..o_name)
+		end
+
+		if type(o_val) == "boolean" then
+			table_insert(cmd_buff,o_val and fn_option[o_name] or "")
+		else
+			table_insert(cmd_buff,fn_option[o_name].."='"..tostring(o_val).."'")
+		end
+	end
+	return cmd_buff
+end
+
 --[[ API ]]--
 
 --- @type boolean
@@ -114,6 +133,12 @@ function lum.file(path)
 	return data
 end
 
+---@param ... any Any value to join
+---@return string joined_text The joined value into string
+--[[
+<s>
+Join (or concatenate) values, used to join Gum's styled texts.
+]]
 function lum.join(...)
 	local option = {
 		horizontal = false,
@@ -128,15 +153,7 @@ function lum.join(...)
 	elseif type(vararg[#vararg]) == "table" and not next(vararg[#vararg]) then
 		vararg[#vararg] = nil
 	end
-	local cmd = {}
-	cmd[1] = "gum join"
-	for o_name,o_val in pairs(option) do
-		if type(o_val) == "boolean" then
-			table_insert(cmd,o_val and toption.join[o_name] or "")
-		else
-			table_insert(cmd,toption.join[o_name].."='"..tostring(o_val).."'")
-		end
-	end
+	local cmd = cmd_handle("join","gum join",option)
 
 	local buff = {}
 	for _,v in pairs(vararg) do
