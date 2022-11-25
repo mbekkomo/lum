@@ -42,11 +42,16 @@ local os_execute = os.execute
 local io_popen,io_open = io.popen,io.open
 local table_insert,table_concat = table.insert,table.concat
 
-local toption = {
+local gum_option = {
 	join = {
 		horizontal = "--horizontal",
 		vertical = "--vertical",
 		align = "--align"
+	},
+	confirm = {
+		affirmative = "--affirmative",
+		negative = "--negative",
+		timeout = "--timeout"
 	}
 }
 
@@ -73,7 +78,7 @@ local function cmd_handle(fn_name,cmd,option)
 	local cmd_buff = {}
 	cmd_buff[1] = cmd
 
-	local fn_option = toption[fn_name]
+	local fn_option = gum_option[fn_name]
 	for o_name,o_val in pairs(option) do
 		if not fn_option[o_name] then
 			error("Invalid option: "..o_name)
@@ -103,8 +108,16 @@ end
 <s>
 Return `true` if selection is affirmative, otherwise `false` if selection is negative.
 ]]
-function lum.confirm(prompt)
-	local _,_,code = os_execute("gum confirm "..(prompt or ""))
+function lum.confirm(prompt,option)
+	local option = option or {
+		affirmative = "Yes",
+		negative = "No",
+		timeout = 0
+	}
+
+	local cmd = cmd_handle("confirm","gum confirm",option)
+
+	local _,_,code = os_execute(table_concat(cmd," ")..(prompt and " "..prompt or ""))
 	return code < 1
 end
 
