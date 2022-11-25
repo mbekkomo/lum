@@ -95,15 +95,21 @@ end
 
 --[[ API ]]--
 
---- @type boolean
+-- @type boolean
 lum._winsupport = false
 
 if iswindows() and not lum._winsupport then
 	error "Lum only works with POSIX shell (`sh`), especially Linux. But you can enable Windows support by changing `lum._winsupport` to `true`."
 end
 
+--- @class confirm_option
+--- @field affirmative string The text for affirmative confirmation
+--- @field negative string The text for negative confirmation
+--- @field timeout number The timeout for confirmation
+
 --- @param prompt? string The prompt string
---- @return boolean confirmation The return of confirmation
+--- @param option? confirm_option The option for the function
+-- @return boolean confirmation The return of confirmation
 --[[
 <s>
 Return `true` if selection is affirmative, otherwise `false` if selection is negative.
@@ -146,8 +152,22 @@ function lum.file(path)
 	return data
 end
 
----@param ... any Any value to join
----@return string joined_text The joined value into string
+--- @alias align
+---| '"left"'
+---| '"right"'
+---| '"top"'
+---| '"bottom"'
+---| '"middle"'
+---| '"center"'
+
+--- @class join_option
+--- @field horizontal boolean Make joins horizontal
+--- @field vertical boolean Make joins vertical
+--- @field align align Align the joins
+
+--- @param ... any Any value to join
+--- @return string joined_text The joined value into string
+--- @overload fun(...: any, option?: join_option)
 --[[
 <s>
 Join (or concatenate) values, used to join Gum's styled texts.
