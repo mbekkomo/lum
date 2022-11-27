@@ -125,7 +125,7 @@ function lum.confirm(prompt, option)
 
 	local cmd = cmd_handle("confirm", "gum confirm", option)
 
-	local _, _, code = os_execute(cmd .. (prompt and " " .. prompt or ""))
+	local _, _, code = os_execute(cmd .. (prompt and " " .. "'" .. prompt .. "'" or ""))
 	return code < 1
 end
 
@@ -175,7 +175,7 @@ end
 
 --- @param  ... any Any value to join
 --- @return string joined_text The joined value into string
---- @overload fun( ...: any, option?: join_option)
+--- @overload fun(...: any, option?: join_option)
 --[[
 <s>
 Join (or concatenate) values, used to join Gum's styled texts.
