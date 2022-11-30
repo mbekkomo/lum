@@ -39,7 +39,7 @@ local lum = {}
 --[[ Misc. ]]--
 
 local os_execute = os.execute
-local io_popen, io_open = io.popen, io.open
+local io_popen, io_write = io.popen, io.write
 local table_insert, table_concat = table.insert, table.concat
 
 local gum_option = {
@@ -52,6 +52,11 @@ local gum_option = {
 		affirmative = "--affirmative",
 		negative = "--negative",
 		timeout = "--timeout"
+	},
+	spin = {
+		spinner = "--spinner",
+		title = "--title",
+		align = "--align"
 	}
 }
 
@@ -105,16 +110,15 @@ end
 
 
 --- @class confirm_option
---- @field affirmative string The text for affirmative confirmation
---- @field negative string The text for negative confirmation
---- @field timeout number The timeout for confirmation
+--- @field affirmative string
+--- @field negative string
+--- @field timeout number
 
---- @param prompt? string The prompt string
---- @param option? confirm_option The option for the function
---- @return boolean confirmation The return of confirmation
+--- @param prompt? string
+--- @param option? confirm_option
+--- @return boolean confirmation
 --[[
-<s>
-Return `true` if selection is affirmative, otherwise `false` if selection is negative.
+Confirm whether to perform an action. Return boolean `true` (affirmative) or `false` (negative) depending on selection.
 ]]
 function lum.confirm(prompt, option)
 	option = option or {
@@ -133,8 +137,7 @@ end
 
 --- @return string text The text
 --[[
-<s>
-Start a multi-line prompt
+Prompt for some multi-line text.
 ]]
 function lum.write()
 	local gum = io_popen "gum write"
@@ -145,11 +148,11 @@ end
 
 
 
---- @param path? string The path to select the file
---- @return string file The file that user selected
+--- @param path? string
+--- @return string file
 --[[
 <s>
-Start a prompt to select file in `path`
+Prompt the user to select a file from the file tree.
 ]]
 function lum.file(path)
 	local gum = io_popen("gum file " .. (path or "."))
@@ -169,12 +172,12 @@ end
 ---| '"center"'
 
 --- @class join_option
---- @field horizontal boolean Make joins horizontal
---- @field vertical boolean Make joins vertical
---- @field align align Align the joins
+--- @field horizontal boolean
+--- @field vertical boolean
+--- @field align align
 
 --- @param  ... any Any value to join
---- @return string joined_text The joined value into string
+--- @return string joined_text
 --- @overload fun(...: any, option?: join_option)
 --[[
 <s>
@@ -205,6 +208,47 @@ function lum.join(...)
 	local data = gum:read "a":gsub("\n$", "")
 	gum:close()
 	return data
+end
+
+--- @alias spinner
+---| '"line"'
+---| '"dot"'
+---| '"minidot"'
+---| '"jump"'
+---| '"pulse"'
+---| '"points"'
+---| '"globe"'
+---| '"moon"'
+---| '"monkey"'
+---| '"meter"'
+---| '"hamburger"'
+
+--- @class spin_option
+--- @field spinner spinner
+--- @field align align
+--- @field title string
+
+--- @param fn function
+--- @param option spin_option
+--- @return function
+--[[
+Display a spinner while running a script or command. The spinner will automatically stop after the given function exits.
+]]
+function lum.spin(fn,option)
+	option = option or {
+		spinner = "dot",
+		title = "Loading...",
+		align = "left"
+	}
+
+	local cmd = cmd_handle("spin","gum spin",option)
+	return function(...)
+		local gum = io_popen(cmd.." -- sleep 999999 & echo $!")
+		local pid = gum:read "*l"
+		fn(...)
+		gum:close()
+		os_execute("kill "..pid)
+	end
 end
 
 return lum
