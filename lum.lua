@@ -24,7 +24,7 @@ SOFTWARE.
 
 --[[
  TODO:
- - Implement `gum spin` with function
+ - Implement `gum spin` with function [DONE]
  - Add support for Windows
 ]]
 
@@ -45,24 +45,6 @@ local io_popen, io_write
 local table_insert, table_concat, table_pack, table_unpack
 	= table.insert, table.concat, table.pack, table.unpack
 
-local gum_option = {
-	join = {
-		horizontal = "--horizontal",
-		vertical = "--vertical",
-		align = "--align"
-	},
-	confirm = {
-		affirmative = "--affirmative",
-		negative = "--negative",
-		timeout = "--timeout"
-	},
-	spin = {
-		spinner = "--spinner",
-		title = "--title",
-		align = "--align"
-	}
-}
-
 local function table_copy(orig)
 	-- Src: http://lua-users.org/wiki/CopyTable
 	local orig_type = type(orig)
@@ -81,6 +63,57 @@ end
 local function iswindows()
 	return type(package) == 'table' and type(package.config) == 'string' and package.config:sub(1, 1) == '\\'
 end
+
+--[[ API ]]--
+
+local gum_option = {
+	join = {
+		horizontal = "--horizontal",
+		vertical = "--vertical",
+		align = "--align",
+	},
+	confirm = {
+		affirmative = "--affirmative",
+		negative = "--negative",
+		timeout = "--timeout"
+	},
+	spin = {
+		spinner = "--spinner",
+		title = "--title",
+		align = "--align",
+
+		spinner_background = "--spinner.background",
+		spinner_foreground = "--spinner.foreground",
+		spinner_border = "--spinnner.border",
+		spinner_border_background = "--spinner.border-background",
+		spinner_border_foreground = "--spinner.border-foreground",
+		spinner_height = "--spinner.height",
+		spinner_width = "--spinner.width",
+		spinner_margin = "--spinner.margin",
+		spinner_padding = "--spinner.padding",
+		spinner_bold = "--spinner.bold",
+		spinner_faint = "--spinner.faint",
+		spinner_italic = "--spinner.italic",
+		spinner_strikethrough = "--spinner.strikethrough",
+		spinner_underline = "--spinner.underline",
+
+		title_background = "--title.background",
+		title_foreground = "--title.foreground",
+		title_border = "--title.border",
+		title_border_background = "--title.border.background",
+		title_border_foreground = "--title.border.foreground",
+		title_height = "--title.height",
+		title_width = "--title.width",
+		title_margin = "--title.margin",
+		title_padding = "--title.padding",
+		title_bold = "--title.bold",
+		title_faint = "--title.faint",
+		title_italic = "--title.italic",
+		title_strikethrough = "--title.strikethrough",
+		title_underline = "--title.underline"
+
+	}
+}
 
 local function cmd_handle(fn_name, cmd, option)
 	local cmd_buff = {}
@@ -101,28 +134,12 @@ local function cmd_handle(fn_name, cmd, option)
 	return table_concat(cmd_buff, " ")
 end
 
---[[ API ]]--
-
--- @type boolean
 lum._winsupport = false
 
 if iswindows() and not lum._winsupport then
 	error "Lum only works with POSIX shell (`sh`), especially Linux. But you can enable Windows support by changing `lum._winsupport` to `true`."
 end
 
-
-
---- @class confirm_option
---- @field affirmative string
---- @field negative string
---- @field timeout number
-
---- @param prompt? string
---- @param option? confirm_option
---- @return boolean confirmation
---[[
-Confirm whether to perform an action. Return boolean `true` (affirmative) or `false` (negative) depending on selection.
-]]
 function lum.confirm(prompt, option)
 	option = option or {
 		affirmative = "Yes",
@@ -136,12 +153,6 @@ function lum.confirm(prompt, option)
 	return code < 1
 end
 
-
-
---- @return string text The text
---[[
-Prompt for some multi-line text.
-]]
 function lum.write()
 	local gum = io_popen "gum write"
 	local data = gum:read "a":gsub("\n$", "")
@@ -149,14 +160,6 @@ function lum.write()
 	return data
 end
 
-
-
---- @param path? string
---- @return string file
---[[
-<s>
-Prompt the user to select a file from the file tree.
-]]
 function lum.file(path)
 	local gum = io_popen("gum file " .. (path or "."))
 	local data = gum:read "a":gsub("\n$", "")
@@ -164,28 +167,6 @@ function lum.file(path)
 	return data
 end
 
-
-
---- @alias align
----| '"left"'
----| '"right"'
----| '"top"'
----| '"bottom"'
----| '"middle"'
----| '"center"'
-
---- @class join_option
---- @field horizontal boolean
---- @field vertical boolean
---- @field align align
-
---- @param  ... any Any value to join
---- @return string joined_text
---- @overload fun(...: any, option?: join_option)
---[[
-<s>
-Join (or concatenate) values, used to join Gum's styled texts.
-]]
 function lum.join(...)
 	local option = {
 		horizontal = false,
@@ -213,30 +194,6 @@ function lum.join(...)
 	return data
 end
 
---- @alias spinner
----| '"line"'
----| '"dot"'
----| '"minidot"'
----| '"jump"'
----| '"pulse"'
----| '"points"'
----| '"globe"'
----| '"moon"'
----| '"monkey"'
----| '"meter"'
----| '"hamburger"'
-
---- @class spin_option
---- @field spinner spinner
---- @field align align
---- @field title string
-
---- @param fn function
---- @param option? spin_option
---- @return function
---[[
-Display a spinner while running a script or command. The spinner will automatically stop after the given function exits.
-]]
 function lum.spin(fn,option)
 	option = option or {
 		spinner = "dot",
