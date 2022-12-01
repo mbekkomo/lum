@@ -38,9 +38,12 @@ local lum = {}
 
 --[[ Misc. ]]--
 
-local os_execute = os.execute
-local io_popen, io_write = io.popen, io.write
-local table_insert, table_concat = table.insert, table.concat
+local os_execute
+	= os.execute
+local io_popen, io_write
+	= io.popen, io.write
+local table_insert, table_concat, table_pack, table_unpack
+	= table.insert, table.concat, table.pack, table.unpack
 
 local gum_option = {
 	join = {
@@ -229,7 +232,7 @@ end
 --- @field title string
 
 --- @param fn function
---- @param option spin_option
+--- @param option? spin_option
 --- @return function
 --[[
 Display a spinner while running a script or command. The spinner will automatically stop after the given function exits.
@@ -245,9 +248,10 @@ function lum.spin(fn,option)
 	return function(...)
 		local gum = io_popen(cmd.." -- sleep 999999 & echo $!")
 		local pid = gum:read "*l"
-		fn(...)
+		local rets = table_pack(fn(...))
 		gum:close()
 		os_execute("kill "..pid)
+		return table_unpack(rets)
 	end
 end
 
